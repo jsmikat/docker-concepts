@@ -25,11 +25,17 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(express.static(path.join(__dirname, "public")));
 
-// MongoDB connection
+// MongoDB connection with enhanced options
 mongoose
-  .connect(process.env.MONGODB_URI)
+  .connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => console.log("🚀 Connected to MongoDB"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
+  .catch((err) => {
+    console.error("❌ MongoDB connection error:", err);
+    process.exit(1); // Exit on connection failure
+  });
 
 // Visitor Schema
 const visitorSchema = new mongoose.Schema({
@@ -49,9 +55,14 @@ app.get("/", (req, res) => {
 app.get("/api/visitors", async (req, res) => {
   try {
     const visitors = await Visitor.find().sort({ createdAt: -1 });
+    console.log(`📋 Fetched ${visitors.length} visitors`);
     res.json(visitors);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching visitors" });
+    console.error("Error fetching visitors:", error);
+    res.status(500).json({
+      message: "Error fetching visitors",
+      error: error.message,
+    });
   }
 });
 
@@ -65,11 +76,16 @@ app.post("/api/visitors", async (req, res) => {
     }
 
     const newVisitor = new Visitor({ name, email });
-    await newVisitor.save();
+    const savedVisitor = await newVisitor.save();
 
-    res.status(201).json(newVisitor);
+    console.log(`➕ Added new visitor: ${savedVisitor.name}`);
+    res.status(201).json(savedVisitor);
   } catch (error) {
-    res.status(500).json({ message: "Error adding visitor" });
+    console.error("Error adding visitor:", error);
+    res.status(500).json({
+      message: "Error adding visitor",
+      error: error.message,
+    });
   }
 });
 
