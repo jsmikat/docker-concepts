@@ -1,0 +1,80 @@
+import cors from "cors";
+import dotenv from "dotenv";
+import express from "express";
+import helmet from "helmet";
+import mongoose from "mongoose";
+import morgan from "morgan";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Load environment variables
+dotenv.config();
+
+// Get __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(helmet());
+app.use(morgan("dev"));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cors());
+app.use(express.static(path.join(__dirname, "public")));
+
+// MongoDB connection
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(() => console.log("🚀 Connected to MongoDB"))
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
+
+// Visitor Schema
+const visitorSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
+const Visitor = mongoose.model("Visitor", visitorSchema);
+
+// Routes
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// Get all visitors
+app.get("/api/visitors", async (req, res) => {
+  try {
+    const visitors = await Visitor.find().sort({ createdAt: -1 });
+    res.json(visitors);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching visitors" });
+  }
+});
+
+// Add new visitor
+app.post("/api/visitors", async (req, res) => {
+  try {
+    const { name, email } = req.body;
+
+    if (!name || !email) {
+      return res.status(400).json({ message: "Name and email are required" });
+    }
+
+    const newVisitor = new Visitor({ name, email });
+    await newVisitor.save();
+
+    res.status(201).json(newVisitor);
+  } catch (error) {
+    res.status(500).json({ message: "Error adding visitor" });
+  }
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`🌟 Server running on port ${PORT}`);
+  console.log(`🌐 http://localhost:${PORT}`);
+});
