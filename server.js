@@ -7,10 +7,8 @@ import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
 
-// Load environment variables
 dotenv.config();
 
-// Get __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -25,7 +23,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(express.static(path.join(__dirname, "public")));
 
-// MongoDB connection with enhanced options
 mongoose
   .connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
@@ -34,10 +31,10 @@ mongoose
   .then(() => console.log("🚀 Connected to MongoDB"))
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err);
-    process.exit(1); // Exit on connection failure
+    process.exit(1);
   });
 
-// Visitor Schema
+  
 const visitorSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true },
@@ -46,12 +43,10 @@ const visitorSchema = new mongoose.Schema({
 
 const Visitor = mongoose.model("Visitor", visitorSchema);
 
-// Routes
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// Get all visitors
 app.get("/api/visitors", async (req, res) => {
   try {
     const visitors = await Visitor.find().sort({ createdAt: -1 });
@@ -66,7 +61,6 @@ app.get("/api/visitors", async (req, res) => {
   }
 });
 
-// Add new visitor
 app.post("/api/visitors", async (req, res) => {
   try {
     const { name, email } = req.body;
@@ -89,7 +83,6 @@ app.post("/api/visitors", async (req, res) => {
   }
 });
 
-// Start server
 app.listen(PORT, () => {
   console.log(`🌟 Server running on port ${PORT}`);
   console.log(`🌐 http://localhost:${PORT}`);
