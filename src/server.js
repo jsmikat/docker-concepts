@@ -28,13 +28,12 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(() => console.log("🚀 Connected to MongoDB"))
+  .then(() => console.log("Connected to MongoDB"))
   .catch((err) => {
-    console.error("❌ MongoDB connection error:", err);
+    console.error("MongoDB connection error:", err);
     process.exit(1);
   });
 
-  
 const visitorSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true },
@@ -50,7 +49,7 @@ app.get("/", (req, res) => {
 app.get("/api/visitors", async (req, res) => {
   try {
     const visitors = await Visitor.find().sort({ createdAt: -1 });
-    console.log(`📋 Fetched ${visitors.length} visitors`);
+    console.log(`Fetched ${visitors.length} visitors`);
     res.json(visitors);
   } catch (error) {
     console.error("Error fetching visitors:", error);
@@ -72,7 +71,7 @@ app.post("/api/visitors", async (req, res) => {
     const newVisitor = new Visitor({ name, email });
     const savedVisitor = await newVisitor.save();
 
-    console.log(`➕ Added new visitor: ${savedVisitor.name}`);
+    console.log(`Added new visitor: ${savedVisitor.name}`);
     res.status(201).json(savedVisitor);
   } catch (error) {
     console.error("Error adding visitor:", error);
@@ -84,6 +83,6 @@ app.post("/api/visitors", async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🌟 Server running on port ${PORT}`);
-  console.log(`🌐 http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
+  console.log(`http://localhost:${PORT}`);
 });
